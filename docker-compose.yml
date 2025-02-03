@@ -1,0 +1,100 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    deploy:
+      replicas: 1  # Database typically doesn't scale horizontally
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secretpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-app_database}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Optional: Mount initialization scripts
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-app_user} -d ${POSTGRES_DB:-app_database}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  grpc-server:
+    build:
+      context: ./grpc-server
+      dockerfile: gRPCDockerfile
+      target: production
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 500M
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DB_HOST: postgres
+      DB_USER: ${POSTGRES_USER:-app_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-secretpassword}
+      DB_NAME: ${POSTGRES_DB:-app_database}
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend-network
+      - frontend-network
+
+  react-app:
+    build:
+      context: ./path-to-react-app
+      dockerfile: ReactRouterDockerfile
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 250M
+    environment:
+      NODE_ENV: production
+      GRPC_SERVER_URL: grpc-server:4000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - grpc-server
+    networks:
+      - frontend-network
+
+networks:
+  frontend-network:
+    driver: overlay
+  backend-network:
+    driver: overlay
+
+volumes:
+  postgres_data:
+    name: postgres_data

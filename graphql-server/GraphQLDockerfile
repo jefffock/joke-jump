@@ -1,0 +1,66 @@
+# Build stage
+FROM node:18-alpine as builder
+
+WORKDIR /app
+
+# Copy package files first
+COPY package*.json ./
+
+# Install dependencies with clean npm cache first
+RUN npm cache clean --force && \
+    npm install --legacy-peer-deps
+
+# Copy source code and config files
+COPY tsconfig.json .
+COPY src ./src
+
+# Build the application
+RUN npm run build
+
+# Development stage
+FROM node:18-alpine as development
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies with clean npm cache first
+RUN npm cache clean --force && \
+    npm install --legacy-peer-deps
+
+# Copy source code and config files
+COPY tsconfig.json .
+COPY src ./src
+
+# Expose port
+EXPOSE 4001
+
+# Start development server
+CMD ["npm", "run", "dev"]
+
+# Production stage
+FROM node:18-alpine as production
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies
+RUN npm cache clean --force && \
+    npm ci --only=production --legacy-peer-deps
+
+# Copy built files from builder
+COPY --from=builder /app/dist ./dist
+
+ENV NODE_ENV=production
+ENV PORT=4001
+
+EXPOSE 4001
+
+CMD ["npm", "start"]
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "fetch('http://localhost:4001/health').then(r => process.exit(r.ok ? 0 : 1))" 

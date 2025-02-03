@@ -1,0 +1,9 @@
+FROM postgres:17
+
+# Copy initialization scripts
+COPY ./init-scripts/ /docker-entrypoint-initdb.d/
+
+# Set default environment variables
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_PASSWORD=postgres
+ENV POSTGRES_DB=myapp 

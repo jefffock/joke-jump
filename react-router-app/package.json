@@ -1,0 +1,38 @@
+{
+  "name": "joke-jump-rr",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "react-router build",
+    "dev": "react-router dev",
+    "start": "react-router-serve ./build/server/index.js",
+    "typecheck": "react-router typegen && tsc",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up -d",
+    "docker:prod": "docker compose -f docker-compose.yml up -d",
+    "docker:dev:logs": "docker compose -f docker-compose.dev.yml logs -f",
+    "docker:dev:down": "docker compose -f docker-compose.dev.yml down"
+  },
+  "dependencies": {
+    "@react-router/node": "^7.1.5",
+    "@react-router/serve": "^7.1.5",
+    "isbot": "^5.1.17",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router": "^7.1.5",
+    "react-router-dom": "^7.1.5",
+    "react-youtube": "^10.1.0"
+  },
+  "devDependencies": {
+    "@react-router/dev": "^7.1.5",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^20",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/react-router-dom": "^5.3.3",
+    "react-router-devtools": "^1.1.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11",
+    "vite-tsconfig-paths": "^5.1.4"
+  }
+}

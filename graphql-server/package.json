@@ -1,0 +1,41 @@
+{
+  "name": "graphql-server",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "codegen": "graphql-codegen --config codegen.yml",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint 'src/**/*.{js,ts}'",
+    "lint:fix": "eslint 'src/**/*.{js,ts}' --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "docker:build": "docker build -t graphql-server -f GraphQLDockerfile .",
+    "docker:build:prod": "docker build --target production -t graphql-server:prod -f GraphQLDockerfile .",
+    "docker:run": "docker run -p 4001:4001 graphql-server",
+    "docker:run:prod": "docker run -p 4001:4001 graphql-server:prod",
+    "docker:stop": "docker stop $(docker ps -q --filter ancestor=graphql-server)",
+    "docker:clean": "docker rm $(docker ps -a -q --filter ancestor=graphql-server)",
+    "dev:docker": "npm run docker:build && npm run docker:run",
+    "prod:docker": "npm run docker:build:prod && npm run docker:run:prod",
+    "clean": "rm -rf dist coverage",
+    "prepare": "npm run build || true",
+    "validate": "npm run type-check && npm run lint && npm run test"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.9.5",
+    "@grpc/grpc-js": "^1.9.13",
+    "@grpc/proto-loader": "^0.7.10",
+    "graphql": "^16.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

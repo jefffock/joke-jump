@@ -1,0 +1,82 @@
+services:
+  postgres:
+    build:
+      context: ./postgres
+      dockerfile: pgDockerfile
+    env_file:
+      - ./postgres/.env
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  grpc-server:
+    build:
+      context: ./grpc-server
+      dockerfile: gRPCDockerfile
+      target: development
+    volumes:
+      - ./grpc-server:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      GRPC_PORT: 50051
+      HEALTH_PORT: 50052
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-myapp}
+      POSTGRES_HOST: postgres
+    ports:
+      - "50051:50051"
+      - "50052:50052"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  graphql-server:
+    build:
+      context: ./graphql-server
+      dockerfile: GraphQLDockerfile
+      target: development
+    volumes:
+      - ./graphql-server:/app
+      - ./grpc-server/proto:/app/proto
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      PORT: 4001
+      GRPC_SERVER_URL: grpc-server:50051
+    ports:
+      - "4001:4001"
+    depends_on:
+      - grpc-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  react-app:
+    build:
+      context: ./react-router-app
+      dockerfile: ReactRouterDockerfile
+      target: development
+    volumes:
+      - ./react-router-app:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      GRAPHQL_URL: http://graphql-server:4001
+    ports:
+      - "5173:5173"
+    depends_on:
+      - graphql-server
+
+volumes:
+  postgres_data:
