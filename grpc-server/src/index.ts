@@ -1,6 +1,16 @@
 import * as grpc from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
 import path from "path";
+import { Pool } from "pg";
+
+// Create PostgreSQL connection pool
+const pool = new Pool({
+  user: process.env.POSTGRES_USER || "postgres",
+  password: process.env.POSTGRES_PASSWORD || "postgres",
+  host: process.env.POSTGRES_HOST || "localhost",
+  database: process.env.POSTGRES_DB || "myapp",
+  port: parseInt(process.env.POSTGRES_PORT || "5432"),
+});
 
 // Proto file path
 const PROTO_PATH = path.resolve(__dirname, "../proto/service.proto");
@@ -16,18 +26,25 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
 
-// Implement your service methods here
 const serviceImplementation = {
-  // Example method
-  SayHello: (call: any, callback: any) => {
-    const { name } = call.request;
-    callback(null, { message: `Hello ${name}!` });
+ 
+  GetVideos: async (_: any, callback: any) => {
+    try {
+      const result = await pool.query("SELECT * FROM videos");
+      const videos = result.rows.map((row) => ({
+        id: row.id,
+        youtube_id: row.youtube_id,
+        created_at: row.created_at.toISOString(),
+        updated_at: row.updated_at.toISOString(),
+      }));
+      callback(null, { videos });
+    } catch (error) {
+      callback(error);
+    }
   },
 };
 
-// gRPC server port
 const GRPC_PORT = process.env.GRPC_PORT || "50051";
-// Health check port
 const HEALTH_PORT = process.env.HEALTH_PORT || "50052";
 
 // Create gRPC server

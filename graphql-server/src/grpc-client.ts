@@ -3,7 +3,8 @@ import * as protoLoader from "@grpc/proto-loader";
 import path from "path";
 
 export function createGrpcClient() {
-  const PROTO_PATH = __dirname + "/../proto/service.proto";
+  console.log("dirname:>>", __dirname);
+  const PROTO_PATH = path.resolve(__dirname, "../proto/service.proto");
   const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
     keepCase: true,
     longs: String,
@@ -16,7 +17,7 @@ export function createGrpcClient() {
 
   // @ts-ignore
   return new protoDescriptor.YourService(
-    process.env.GRPC_SERVER_URL || "localhost:4000",
+    process.env.GRPC_SERVER_URL || "grpc-server:50051",
     grpc.credentials.createInsecure()
   );
 }

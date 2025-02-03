@@ -1,5 +1,14 @@
-export const typeDefs = `#graphql
+const typeDefs = `#graphql
+  type Video {
+    id: ID!
+    youtube_id: String!
+    created_at: String!
+    updated_at: String!
+  }
+
   type Query {
-    hello(name: String!): String!
+    videos: [Video!]!
   }
 `;
+
+export { typeDefs };

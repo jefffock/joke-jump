@@ -12,6 +12,13 @@
     "logs:graphql": "docker-compose -f docker-compose.dev.yml logs -f graphql-server",
     "logs:react": "docker-compose -f docker-compose.dev.yml logs -f react-app",
     "logs:postgres": "docker-compose -f docker-compose.dev.yml logs -f postgres",
-    "logs:graphql:build": "docker-compose -f docker-compose.dev.yml logs -f graphql-server --tail=100"
+    "logs:graphql:build": "docker-compose -f docker-compose.dev.yml logs -f graphql-server --tail=100",
+    "rebuild": "docker-compose -f docker-compose.dev.yml down -v && docker-compose -f docker-compose.dev.yml up --build",
+    "full-rebuild": "docker-compose -f docker-compose.dev.yml down && docker rmi $(docker images -q) && docker builder prune -f && docker-compose -f docker-compose.dev.yml up --build",
+    "dev": "docker-compose -f docker-compose.dev.yml up",
+    "dev:build": "docker-compose -f docker-compose.dev.yml up --build",
+    "dev:logs": "docker-compose -f docker-compose.dev.yml logs -f",
+    "dev:down": "docker-compose -f docker-compose.dev.yml down",
+    "dev:clean": "chmod +x scripts/dev-clean.sh && ./scripts/dev-clean.sh"
   }
 }

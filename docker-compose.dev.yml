@@ -9,6 +9,7 @@ services:
       - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -37,6 +38,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    command: npm run dev
 
   graphql-server:
     build:
@@ -49,18 +51,22 @@ services:
       - /app/node_modules
     environment:
       NODE_ENV: development
-      PORT: 4001
-      GRPC_SERVER_URL: grpc-server:50051
+      GRAPHQL_PORT: 4001
+      HEALTH_PORT: 4002
+      GRPC_HOST: grpc-server
+      GRPC_PORT: 50051
     ports:
       - "4001:4001"
+      - "4002:4002"
     depends_on:
       - grpc-server
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4001/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:4002/health"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+    command: npm run dev
 
   react-app:
     build:
@@ -72,11 +78,12 @@ services:
       - /app/node_modules
     environment:
       NODE_ENV: development
-      GRAPHQL_URL: http://graphql-server:4001
+      VITE_GRAPHQL_URL: http://localhost:4001
     ports:
       - "5173:5173"
     depends_on:
       - graphql-server
+    command: npm run dev -- --host
 
 volumes:
   postgres_data:

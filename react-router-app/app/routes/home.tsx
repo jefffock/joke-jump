@@ -14,6 +14,7 @@ export default function Home() {
   return (
     <>
       <Link to="/jokes">Jokes</Link>
+      <Link to="/videos">Videos</Link>
       <Search />
       <JokeJumper />
     </>

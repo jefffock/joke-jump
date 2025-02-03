@@ -1,13 +1,18 @@
 syntax = "proto3";
 
 service YourService {
-    rpc SayHello (HelloRequest) returns (HelloResponse);
+    rpc GetVideos (GetVideosRequest) returns (GetVideosResponse);
 }
 
-message HelloRequest {
-    string name = 1;
+message GetVideosRequest {}
+
+message Video {
+    string id = 1;
+    string youtube_id = 2;
+    string created_at = 3;
+    string updated_at = 4;
 }
 
-message HelloResponse {
-    string message = 1;
+message GetVideosResponse {
+    repeated Video videos = 1;
 } 

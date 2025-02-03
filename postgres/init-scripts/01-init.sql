@@ -9,4 +9,17 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Add any other initial tables or data here 
+CREATE TABLE IF NOT EXISTS videos (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    youtube_id VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert initial videos
+INSERT INTO videos (youtube_id) 
+VALUES 
+    ('7GfWXN5Lp1s'),
+    ('vrIw2i4WtA4')
+ON CONFLICT (youtube_id) DO NOTHING;
+

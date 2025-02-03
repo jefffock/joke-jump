@@ -2,7 +2,7 @@ import YouTube, { type YouTubeProps } from "react-youtube";
 import { useRef } from "react";
 import TimestampButton from "./TimestampButton";
 
-export default function JokeJumper() {
+export default function JokeJumper({ videoId }: { videoId: string }) {
   const playerRef = useRef<any>(null);
 
   const onPlayerReady: YouTubeProps["onReady"] = (event) => {
@@ -51,7 +51,7 @@ export default function JokeJumper() {
   return (
     <>
       <YouTube
-        videoId="7GfWXN5Lp1s"
+        videoId={videoId}
         opts={opts}
         onReady={onPlayerReady}
         onPause={onPause}

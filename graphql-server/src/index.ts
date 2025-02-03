@@ -3,6 +3,9 @@ import { startStandaloneServer } from "@apollo/server/standalone";
 import { typeDefs } from "./schema";
 import { resolvers } from "./resolvers";
 import { createGrpcClient } from "./grpc-client";
+import { expressMiddleware } from "@apollo/server/express4";
+import express from "express";
+import cors from "cors";
 
 async function startServer() {
   // Create gRPC client
@@ -15,30 +18,35 @@ async function startServer() {
   });
 
   // GraphQL server port
-  const GRAPHQL_PORT = process.env.GRAPHQL_PORT || "4000"; // Main GraphQL port
+  const GRAPHQL_PORT = process.env.GRAPHQL_PORT || "4001"; // Main GraphQL port
   // Health check port
-  const HEALTH_PORT = process.env.HEALTH_PORT || "4001"; // GraphQL health check port
+  const HEALTH_PORT = process.env.HEALTH_PORT || "4002"; // GraphQL health check port
 
-  // Start server
-  const { url } = await startStandaloneServer(server, {
-    context: async () => ({
-      grpcClient,
-    }),
-    listen: { port: parseInt(GRAPHQL_PORT) },
+  await server.start();
+
+  const app = express();
+
+  // Enable CORS for all routes
+  app.use(cors());
+  app.use(express.json());
+
+  app.use(
+    "/",
+    expressMiddleware(server, {
+      context: async () => ({
+        grpcClient,
+      }),
+    })
+  );
+
+  app.listen(parseInt(GRAPHQL_PORT), "0.0.0.0", () => {
+    console.log(`🚀 Server ready at http://0.0.0.0:${GRAPHQL_PORT}/`);
   });
 
-  console.log(`🚀 Server ready at ${url}`);
-
   // Health check endpoint
-  const http = require("http");
-  const healthServer = http.createServer((req: any, res: any) => {
-    if (req.url === "/health") {
-      res.writeHead(200);
-      res.end("OK");
-      return;
-    }
-    res.writeHead(404);
-    res.end();
+  const healthServer = express();
+  healthServer.get("/health", (_, res) => {
+    res.send("OK");
   });
 
   healthServer.listen(HEALTH_PORT, () => {
